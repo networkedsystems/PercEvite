@@ -28,59 +28,82 @@
 ##ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 ##THE POSSIBILITY OF SUCH DAMAGE.
 ###############################################################################
-def wifiRW(port,coords):
+from random import random
+from time import sleep
+from collections import deque
+
+
+def wifiRW(port,coords,idn,buffer = deque(maxlen=4)):
     message = port.readline()
+
     if b'>' in message:
         lat,lon,alt = coords
-        snd = '1-'+str(lat)+'N_'+str(lon)+'E_'+str(alt)+'*\n' 
+        snd = 'D'+str(idn)+'-'+str(lat)[0:8]+'N_'+str(lon)[0:8]+'E_'+str(alt)+'*\n' 
         m = port.write(snd.encode('utf-8'))
         return
     else:
         try:  
             ms = str(message[:-2]).strip("**'").split('-')
+            
             Did = ms[0][2:]
+            if 'DD' in Did:
+                Did = Did[1:]
+            elif 'D' not in Did:
+                Did = 'D'+Did
             coords = ms[1].split('_')
             lat = float(coords[0][0:-1])
             lon = float(coords[1][0:-1])
             alt = float(coords[2])
             D = (Did,lat,coords[0][-1],lon,coords[1][-1],alt)
+            buffer.append(D)
             return D
         except:
+            
             return None
 
-def broadcastGPS(port, coords):
-    lat,lon,alt = coords
+# def broadcastGPS(port, coords):
+#     lat,lon,alt = coords
 
-    snd = '1-'+str(lat)+'N_'+str(lon)+'E_'+str(alt)+'\n'
+#     snd = '1-'+str(lat)+'N_'+str(lon)+'E_'+str(alt)+'\n'
     
-    m = port.write(snd.encode('utf-8'))
+#     m = port.write(snd.encode('utf-8'))
 
-def scan(port):
-    message = port.readline()
-    print(message)
-    try:
+# def scan(port):
+#     message = port.readline()
+#     print(message)
+#     try:
         
-        ms = str(message[:-2]).strip("**'").split('-')
-        Did = ms[0][2:]
-        coords = ms[1].split('_')
-        lat = float(coords[0][0:-1])
-        lon = float(coords[1][0:-1])
-        alt = float(coords[2])
-        D = (Did,lat,coords[0][-1],lon,coords[1][-1],alt)
-        return D
-    except:
-        return None
+#         ms = str(message[:-2]).strip("**'").split('-')
+#         Did = ms[0][2:]
+#         coords = ms[1].split('_')
+#         lat = float(coords[0][0:-1])
+#         lon = float(coords[1][0:-1])
+#         alt = float(coords[2])
+#         D = (Did,lat,coords[0][-1],lon,coords[1][-1],alt)
+#         return D
+#     except:
+#         return None
 
 
 #####Test program #####
 if __name__ == '__main__':
     from serial import Serial
+    md = deque(maxlen=8)
     lat = 50.862754
     lon = 4.683839
     alt = 5
-    wifi = Serial("/dev/serial0",115200)
-    wifi = Serial("COM36",115200)
+    #wifi = Serial("/dev/serial0",115200)
+    wifi1 = Serial("COM4",115200,xonxoff=True)
+    wifi2 = Serial("COM9",115200,xonxoff=True)
+    
     while True:
         #d = scan(wifi)
         #print(d)
-        wifiRW(wifi,(lat,lon,alt))
+        d1 = wifiRW(wifi1,(random()*50,random()*5,alt),1,md)
+        d2 = wifiRW(wifi2,(random()*50,random()*5,alt),2,md)
+        try:
+            # sleep(0.1)
+            print(md)
+        except:
+            break
+

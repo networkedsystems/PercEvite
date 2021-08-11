@@ -48,7 +48,7 @@ import time
 from serial import Serial
 from drone_ctrl import *
 from wifi import *
-from escape import *
+
 ################################################################################
 
 #this depends from the pi, it needs to be a parameter
@@ -76,6 +76,9 @@ def getGPS(vehicle):
     lon = str(vehicle.location.global_frame.lon)
     alt = str(vehicle.location.global_frame.alt)
     return (lat,lon,alt)
+
+def escape(t1,t2):
+    pass
 
 def listen():
     print("Going to",str(w))

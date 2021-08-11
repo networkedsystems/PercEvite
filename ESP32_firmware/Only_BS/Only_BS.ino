@@ -64,9 +64,9 @@ void scan(uint8_t ch, uint8_t Ts){
   for (int j = 0; j < numSsid; j++) {
     String ssid = WiFi.SSID(j);
     if(ssid.startsWith("D")){
-      Serial.print(ssid+"\t");
-      Serial.print("rssi:");
-      Serial.println(WiFi.RSSI(j));
+      Serial.print(ssid+"\n");
+      //Serial.print("rssi:");
+      //Serial.println(WiFi.RSSI(j));
     
     }
   
@@ -124,7 +124,7 @@ void loop() {
     //if(r < 8889){ //80Tx,20Rx
       //unsigned long start = micros();
       //digitalWrite(15, HIGH);
-      //Serial.println('>'); //Used to synchronize UART communication
+      Serial.println('>'); //Used to synchronize UART communication
       Serial.write(17);//XON
       int b = Serial.readBytesUntil('*',&packet[39], 26);  
       Serial.write(19);//XOFF    
@@ -135,7 +135,7 @@ void loop() {
         }
    else{
     //unsigned long start = micros();
-    Serial.write('S');
+    //Serial.println('S');
     scan(channel,60);//S
     //unsigned long stop = micros();
     //Serial.printf("s-dur: %u\r\n",stop-start);
