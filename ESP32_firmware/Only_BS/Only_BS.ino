@@ -122,23 +122,23 @@ void loop() {
     //if(r < 7500){ //60Tx,40Rx
     //if(r < 8235){ //70Tx,30Rx
     //if(r < 8889){ //80Tx,20Rx
-      unsigned long start = micros();
+      //unsigned long start = micros();
       //digitalWrite(15, HIGH);
-      Serial.println('>'); //Used to synchronize UART communication
+      //Serial.println('>'); //Used to synchronize UART communication
       Serial.write(17);//XON
       int b = Serial.readBytesUntil('*',&packet[39], 26);  
       Serial.write(19);//XOFF    
       broadcastSSID();//B   
       //digitalWrite(15, LOW);
-      unsigned long stop = micros();
-      Serial.printf("dur: %u\r\n",stop-start);
+      //unsigned long stop = micros();
+      //Serial.printf("dur: %u\r\n",stop-start);
         }
    else{
-    unsigned long start = micros();
-    Serial.println('S');
+    //unsigned long start = micros();
+    Serial.write('S');
     scan(channel,60);//S
-    unsigned long stop = micros();
-    Serial.printf("s-dur: %u\r\n",stop-start);
+    //unsigned long stop = micros();
+    //Serial.printf("s-dur: %u\r\n",stop-start);
    }
    
   
