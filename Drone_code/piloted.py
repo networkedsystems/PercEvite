@@ -71,13 +71,10 @@ running = True
 #Serial connection to WiFi module
 wifi = Serial("/dev/serial0",115200)
 
-
-time.sleep(10)
-
 lat,lon,alt = getGPS(vehicle)
 
 
-while running:
+while True:
     
     lat,lon,alt = getGPS(vehicle)
     
@@ -85,12 +82,4 @@ while running:
     time.sleep(0.1)
         
 
-print("Returning to Launch")
-vehicle.mode = VehicleMode("RTL")
-time.sleep(0.5)
 
-# Close vehicle object before exiting script
-print("Close vehicle object")
-vehicle.close()
-
-print("Completed")
