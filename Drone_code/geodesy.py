@@ -145,7 +145,7 @@ def ENU2ECEF(Latr,Lonr,Xr,Yr,Zr,x,y,z):
     return M.dot(V) + np.array([Xr, Yr, Zr])
 
 if __name__=="__main__":
-    from math import radians
+    from math import radians, degrees
     latitude = 50.862447
     longitude = 4.683828
     height = 50
@@ -159,9 +159,10 @@ if __name__=="__main__":
     enu = ECEF2ENU(Latr,Lonr,kr[0],kr[1],kr[2],k[0],k[1],k[2])
     X,Y,Z = ENU2ECEF(Latr,Lonr,kr[0],kr[1],kr[2],enu[0],enu[1],enu[2])
     
+    print(k,',',kr)
     print(enu)
     print((X,Y,Z))
-    G = ECEF2geo(k[0],k[1],k[2])
+    G = ECEF2geo(kr[0],kr[1],kr[2])
     #print((latitude,longitude,height))
 
-    print(G)
+    print(degrees(G[0]),degrees(G[1]),G[2])

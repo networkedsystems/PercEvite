@@ -48,6 +48,7 @@ import time
 from serial import Serial
 from drone_ctrl import *
 from wifi import *
+from math import degrees
 
 ################################################################################
 
@@ -78,9 +79,22 @@ def getGPS(vehicle):
     return (lat,lon,alt)
 
 def escape(t1,t2):
-    pass
+    lat,lon = t1[0],t1[1]
+    dp1 = geo2ECEF(t1)
+    dp2 = geo2ECEF(t2)
+    x,y,z = ECEF2ENU(lat,lon,dp1[0],dp1[1],dp1[2],dp2[0],dp2[1],dp2[2])
+    dist = sqrt(x**2+y**2)
+    xn,yn = 0
+    if dist < 6:
+        xn = -x
+        yn = -y
+        la,lo,h = ECEF2geo(ENU2ECEF(lat,lon,dp1[0],dp1[1],dp1[2],xn,yn,z))
+        return (degrees(la),degrees(lo),h)
+    return None
 
-def listen():
+
+
+def listen(lat,lon,alt):
     print("Going to",str(w))
     d = wifiRW(wifi,(lat,lon,alt))
     print(d)
@@ -99,46 +113,31 @@ mission = [
 
 esc_point = None
 arm_and_takeoff(vehicle, 4)
-vehicle.airspeed = 2
+vehicle.airspeed = 1
 time.sleep(10)
 
 lat,lon,alt = getGPS(vehicle)
 
-flag = False
-
 ind = 0
 
 while running:
-    
     if ind == len(mission):
         ind = 0
     try:
+        lat,lon,alt = getGPS(vehicle)
+        
+        esc_point = listen(lat,lon,alt)
+
         if esc_point is not None:
-            w = esc_point
-            goto_position_target_global_int(vehicle,w)
-            lat,lon,alt = getGPS(vehicle)
-            distance = haversine(float(lat),float(w.lat),float(lon),float(w.lon))
+            mission.insert(ind,esc_point)
+        
+        goto_position_target_global_int(vehicle,mission[ind])
+        distance = haversine(float(lat),float(mission[ind].lat),float(lon),float(mission[ind].lon))
 
-            if distance < 5:
-                esc_point = None
-        
-            e = listen()
-            if e is not None:
-                esc_point = e
-        else:
-            w = mission[ind]
-            goto_position_target_global_int(vehicle,w)
-            lat,lon,alt = getGPS(vehicle)
-            distance = haversine(float(lat),float(w.lat),float(lon),float(w.lon))
-
-            if distance < 5:
-                ind+=1
-        
-            e = listen()
-            if e is not None:
-                esc_point = e
-        
-        time.sleep(0.5)
+        if distance < 5:
+            ind+=1
+ 
+        time.sleep(0.25)
         
     except KeyboardInterrupt:
         break
