@@ -72,71 +72,18 @@ running = True
 wifi = Serial("/dev/serial0",115200)
 
 
-
-
-def escape(t1,t2):
-    lat,lon = t1[0],t1[1]
-    dp1 = geo2ECEF(t1)
-    dp2 = geo2ECEF(t2)
-    x,y,z = ECEF2ENU(lat,lon,dp1[0],dp1[1],dp1[2],dp2[0],dp2[1],dp2[2])
-    dist = sqrt(x**2+y**2)
-    xn,yn = 0
-    if dist < 6:
-        xn = -x
-        yn = -y
-        la,lo,h = ECEF2geo(ENU2ECEF(lat,lon,dp1[0],dp1[1],dp1[2],xn,yn,z))
-        return (degrees(la),degrees(lo),h)
-    return None
-
-
-
-def listen(lat,lon,alt):
-    
-    d = wifiRW(wifi,(lat,lon,alt))
-    
-    if d is not None:
-        e = escape((lat,lon,alt),(d[1],d[3],d[5]))
-        if e is not None:
-            return LocationGlobalRelative(e[0],e[1],5)
-    return None
-
-#Hardcoded for testing purposes
-mission = [
-     LocationGlobalRelative(50.862105, 4.684649, 5),#In front of the castle
-     #LocationGlobalRelative(50.861970, 4.682687, 5) #birds place
- ]
-
-
-esc_point = None
-arm_and_takeoff(vehicle, 4)
-vehicle.airspeed = 1
 time.sleep(10)
 
 lat,lon,alt = getGPS(vehicle)
 
-ind = 0
 
 while running:
-    if ind == len(mission):
-        ind = 0
-    try:
-        lat,lon,alt = getGPS(vehicle)
+    
+    lat,lon,alt = getGPS(vehicle)
+    
+    wifiRW(wifi,(lat,lon,alt))
+    time.sleep(0.1)
         
-        esc_point = listen(lat,lon,alt)
-
-        if esc_point is not None:
-            mission.insert(ind,esc_point)
-        
-        goto_position_target_global_int(vehicle,mission[ind])
-        distance = haversine(float(lat),float(mission[ind].lat),float(lon),float(mission[ind].lon))
-
-        if distance < 5:
-            ind+=1
- 
-        time.sleep(0.25)
-        
-    except KeyboardInterrupt:
-        break
 
 print("Returning to Launch")
 vehicle.mode = VehicleMode("RTL")

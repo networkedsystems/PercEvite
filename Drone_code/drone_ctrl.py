@@ -33,7 +33,12 @@ THE POSSIBILITY OF SUCH DAMAGE.
 '''
 import time
 from dronekit import mavutil, VehicleMode
-
+def getGPS(vehicle):
+    lat = str(vehicle.location.global_frame.lat)
+    lon = str(vehicle.location.global_frame.lon)
+    alt = str(vehicle.location.global_frame.alt)
+    return (lat,lon,alt)
+    
 def goto_position_target_global_int(vehicle, aLocation):
     """
     Send SET_POSITION_TARGET_GLOBAL_INT command to request the vehicle fly to a specified location.
