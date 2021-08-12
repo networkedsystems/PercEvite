@@ -72,7 +72,7 @@ running = True
 wifi = Serial("/dev/serial0",115200)
 
 
-
+md = deque(maxlen=8)
 
 def escape(t1,t2):
     lat,lon = t1[0],t1[1]
@@ -92,7 +92,7 @@ def escape(t1,t2):
 
 def listen(lat,lon,alt):
     
-    d = wifiRW(wifi,(lat,lon,alt))
+    d = wifiRW(wifi,(lat,lon,alt),1)
     
     if d is not None:
         e = escape((lat,lon,alt),(d[1],d[3],d[5]))
