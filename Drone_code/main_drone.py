@@ -97,7 +97,7 @@ def escape(t1,t2):
 def listen(lat,lon,alt):
     
     d = wifiRW(wifi,(lat,lon,alt))
-    print(d)
+    
     if d is not None:
         e = escape((lat,lon,alt),(d[1],d[3],d[5]))
         if e is not None:
