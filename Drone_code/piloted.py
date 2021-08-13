@@ -75,11 +75,24 @@ lat,lon,alt = getGPS(vehicle)
 
 
 while True:
-    
-    lat,lon,alt = getGPS(vehicle)
-    
-    wifiRW(wifi,(lat,lon,alt))
-    time.sleep(0.1)
-        
+   try:
+
+      lat,lon,alt = getGPS(vehicle)
+      
+      wifiRW(wifi,(lat,lon,alt))
+      time.sleep(0.1)
+   except KeyboardInterrupt:
+      break
+
+print("Returning to Launch")
+vehicle.mode = VehicleMode("RTL")
+time.sleep(0.5)
+
+# Close vehicle object before exiting script
+print("Close vehicle object")
+vehicle.close()
+
+print("Completed")
+
 
 
