@@ -75,29 +75,41 @@ wifi = Serial("/dev/ttyUSB0",115200)
 md = deque(maxlen=1)
 
 def escape(t1,t2):
+    #current coordinates
     lat,lon = t1[0],t1[1]
     dp1 = geo2ECEF(t1[0],t1[1],t1[2])
+    #other drone coordinates
     dp2 = geo2ECEF(t2[0],t2[1],t2[2])
+    #Convert second drone coordinates into East, North, Up relative frame
     x,y,z = ECEF2ENU(lat,lon,dp1[0],dp1[1],dp1[2],dp2[0],dp2[1],dp2[2])
+    #How far is the second drone,
     dist = sqrt(x**2+y**2)
     xn,yn = 0
+    #Less than 6m is too close, we move towards the opposite coordinates
     if dist < 6:
         xn = -x
         yn = -y
+        #convert back from local ENU frame to geodetic
         la,lo,h = ECEF2geo(ENU2ECEF(lat,lon,dp1[0],dp1[1],dp1[2],xn,yn,z))
+        #return escape point
         return (degrees(la),degrees(lo),h)
+    #If the other is far, nothing to return
     return None
 
 
 
 def listen(lat,lon,alt):
-    
+    #Update the coordinates in the Wi-Fi module and retreive incoming messages
     d = wifiRW(wifi,(lat,lon,alt),1,buffer=md)
     
     if d is not None:
+        #another drone is broadcasting its position, check if escape is needed
         e = escape((lat,lon,alt),(d[1],d[3],d[5]))
+
         if e is not None:
+            #If escape is needed, return the escape point
             return LocationGlobalRelative(e[0],e[1],5)
+    #else: nothing to return
     return None
 
 #Hardcoded for testing purposes
@@ -124,29 +136,38 @@ while running:
     if ind == len(mission):
         ind = 0
     try:
+        #update current position
         lat,lon,alt = getGPS(vehicle)
         ref = geo2ECEF(lat,lon,alt)
-
+        #check wifi: if another drone is close, compute escape point
         esc_point = listen(lat,lon,alt)
 
         if esc_point is not None:
+            #another drone is close!
+            #replace current target point with the escape point
             mission.insert(ind,esc_point)
+            #save the index of the escape point into a list
             eind.append(ind)
-
+        
         elif esc_point is None and len(eind) > 0:
+            #all clear, we can remove the escape point
             mission.pop(eind[0])
+            #follow in order
             eind.pop(0)
+        
+        #get the target coordinates
         tar_lat, tar_lon, tar_alt = mission[ind]
-
         tar = geo2ECEF(lat,lon,alt)
+        #compute the relative position in East North Up
         x,y,z = ECEF2ENU(lat,lon,ref[0],ref[1],ref[2],tar[0],tar[1], tar[2])
+        #How far is the point?
         distance = sqrt(x**2+y**2)
-
+        #if closer than 5m, it is good enough
         if distance < 5:
             ind+=1
-        
+        #move to the next target point
         goto_position_target_global_int(vehicle,mission[ind])
-         
+        
         time.sleep(0.5)
         
     except:
