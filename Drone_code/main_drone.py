@@ -72,12 +72,12 @@ running = True
 wifi = Serial("/dev/ttyUSB0",115200)
 
 
-md = deque(maxlen=8)
+md = deque(maxlen=1)
 
 def escape(t1,t2):
     lat,lon = t1[0],t1[1]
-    dp1 = geo2ECEF(t1)
-    dp2 = geo2ECEF(t2)
+    dp1 = geo2ECEF(t1[0],t1[1],t1[2])
+    dp2 = geo2ECEF(t2[0],t2[1],t2[2])
     x,y,z = ECEF2ENU(lat,lon,dp1[0],dp1[1],dp1[2],dp2[0],dp2[1],dp2[2])
     dist = sqrt(x**2+y**2)
     xn,yn = 0
@@ -92,7 +92,7 @@ def escape(t1,t2):
 
 def listen(lat,lon,alt):
     
-    d = wifiRW(wifi,(lat,lon,alt),1)
+    d = wifiRW(wifi,(lat,lon,alt),1,buffer=md)
     
     if d is not None:
         e = escape((lat,lon,alt),(d[1],d[3],d[5]))
@@ -125,7 +125,8 @@ while running:
         ind = 0
     try:
         lat,lon,alt = getGPS(vehicle)
-        
+        ref = geo2ECEF(lat,lon,alt)
+
         esc_point = listen(lat,lon,alt)
 
         if esc_point is not None:
@@ -135,14 +136,18 @@ while running:
         elif esc_point is None and len(eind) > 0:
             mission.pop(eind[0])
             eind.pop(0)
-        
-        goto_position_target_global_int(vehicle,mission[ind])
-        distance = haversine(float(lat),float(mission[ind].lat),float(lon),float(mission[ind].lon))
+        tar_lat, tar_lon, tar_alt = mission[ind]
+
+        tar = geo2ECEF(lat,lon,alt)
+        x,y,z = ECEF2ENU(lat,lon,ref[0],ref[1],ref[2],tar[0],tar[1], tar[2])
+        distance = sqrt(x**2+y**2)
 
         if distance < 5:
             ind+=1
- 
-        time.sleep(0.25)
+        
+        goto_position_target_global_int(vehicle,mission[ind])
+         
+        time.sleep(0.5)
         
     except KeyboardInterrupt:
         break

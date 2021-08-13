@@ -69,7 +69,7 @@ running = True
 ################################################################################
 
 #Serial connection to WiFi module
-wifi = Serial("/dev/serial0",115200)
+wifi = Serial("/dev/ttyUSB0",115200)
 
 lat,lon,alt = getGPS(vehicle)
 
@@ -79,8 +79,8 @@ while True:
 
       lat,lon,alt = getGPS(vehicle)
       
-      wifiRW(wifi,(lat,lon,alt))
-      time.sleep(0.1)
+      wifiRW(wifi,(lat,lon,alt),1)
+      time.sleep(0.5)
    except KeyboardInterrupt:
       break
 
