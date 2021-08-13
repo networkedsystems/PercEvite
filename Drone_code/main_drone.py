@@ -149,7 +149,7 @@ while running:
          
         time.sleep(0.5)
         
-    except KeyboardInterrupt:
+    except:
         break
 
 print("Returning to Launch")
