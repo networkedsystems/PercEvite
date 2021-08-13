@@ -33,57 +33,49 @@ from time import sleep
 from collections import deque
 
 
+
+
+def broadcastGPS(port, coords, idn):
+    lat,lon,alt = coords
+
+    snd = 'D'+str(idn)+'-'+str(lat)+'N_'+str(lon)+'E_'+str(alt)+'\n'
+    
+    m = port.write(snd.encode('utf-8'))
+
+def scan(port, message):
+    message = port.readline()
+    if b'>' in message:
+        return message
+    try:
+        ms = str(message[:-2]).strip("**'").split('-')
+            
+        Did = ms[0][2:]
+        if 'DD' in Did:
+            Did = Did[1:]
+        elif 'D' not in Did:
+            Did = 'D'+Did
+        coords = ms[1].split('_')
+        lat = float(coords[0][0:-1])
+        lon = float(coords[1][0:-1])
+        alt = float(coords[2])
+        D = (Did,lat,coords[0][-1],lon,coords[1][-1],alt)
+        return D
+    except:
+        return None
+
+
 def wifiRW(port,coords,idn,buffer = deque(maxlen=4)):
     message = port.readline()
 
     if b'>' in message:
-        lat,lon,alt = coords
-        snd = 'D'+str(idn)+'-'+str(lat)[0:8]+'N_'+str(lon)[0:8]+'E_'+str(alt)+'*\n' 
-        m = port.write(snd.encode('utf-8'))
+        broadcastGPS(port,coords,idn)
         return
     else:
-        try:  
-            ms = str(message[:-2]).strip("**'").split('-')
-            
-            Did = ms[0][2:]
-            if 'DD' in Did:
-                Did = Did[1:]
-            elif 'D' not in Did:
-                Did = 'D'+Did
-            coords = ms[1].split('_')
-            lat = float(coords[0][0:-1])
-            lon = float(coords[1][0:-1])
-            alt = float(coords[2])
-            D = (Did,lat,coords[0][-1],lon,coords[1][-1],alt)
+        D = scan(message)
+        if D is not None:
             buffer.append(D)
-            return D
-        except:
-            
-            return None
-
-# def broadcastGPS(port, coords):
-#     lat,lon,alt = coords
-
-#     snd = '1-'+str(lat)+'N_'+str(lon)+'E_'+str(alt)+'\n'
-    
-#     m = port.write(snd.encode('utf-8'))
-
-# def scan(port):
-#     message = port.readline()
-#     print(message)
-#     try:
+        return D
         
-#         ms = str(message[:-2]).strip("**'").split('-')
-#         Did = ms[0][2:]
-#         coords = ms[1].split('_')
-#         lat = float(coords[0][0:-1])
-#         lon = float(coords[1][0:-1])
-#         alt = float(coords[2])
-#         D = (Did,lat,coords[0][-1],lon,coords[1][-1],alt)
-#         return D
-#     except:
-#         return None
-
 
 #####Test program #####
 if __name__ == '__main__':
