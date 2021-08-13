@@ -69,7 +69,7 @@ running = True
 ################################################################################
 
 #Serial connection to WiFi module
-wifi = Serial("/dev/serial0",115200)
+wifi = Serial("/dev/ttyUSB0",115200)
 
 
 md = deque(maxlen=8)
@@ -102,19 +102,23 @@ def listen(lat,lon,alt):
 
 #Hardcoded for testing purposes
 mission = [
-     LocationGlobalRelative(50.862105, 4.684649, 5),#In front of the castle
+     #LocationGlobalRelative(50.862077, 4.684963, 5),#In front of the castle
+     #LocationGlobalRelative(50.862003, 4.684558, 5),#In front of the castle
+     #LocationGlobalRelative(50.862428, 4.684319, 5),#In front of the castle
+     LocationGlobalRelative(50.862262, 4.684424, 5)#,
      #LocationGlobalRelative(50.861970, 4.682687, 5) #birds place
  ]
 
 
 esc_point = None
 arm_and_takeoff(vehicle, 4)
-vehicle.airspeed = 1
+vehicle.airspeed = 1.5
 time.sleep(10)
 
 lat,lon,alt = getGPS(vehicle)
 
 ind = 0
+eind = []
 
 while running:
     if ind == len(mission):
@@ -126,6 +130,11 @@ while running:
 
         if esc_point is not None:
             mission.insert(ind,esc_point)
+            eind.append(ind)
+
+        elif esc_point is None and len(eind) > 0:
+            mission.pop(eind[0])
+            eind.pop(0)
         
         goto_position_target_global_int(vehicle,mission[ind])
         distance = haversine(float(lat),float(mission[ind].lat),float(lon),float(mission[ind].lon))
